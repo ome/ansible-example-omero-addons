@@ -140,6 +140,14 @@
 
   tasks:
 
+    - name: selinux nginx allow omero wss
+      become: true
+      seboolean:
+        name: httpd_can_network_connect
+        state: true
+        persistent: true
+      when: selinux_enabled
+
     - name: Copy Figure_To_Pdf.py script
       become: true
       become_user: omero-server
