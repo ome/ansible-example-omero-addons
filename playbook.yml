@@ -29,9 +29,11 @@
         # Needed for OMERO.figure export
         - markdown
         - reportlab
+      omero_server_config_set:
+        # Enable web-sockets
+        omero.client.icetransports: ssl,tcp,wss
       ## Uncomment to scale up for more users.
       # Disabling permits testing on smaller VMs.
-      # omero_server_config_set:
       #   omero.db.poolsize: 50
       #   omero.jvmcfg.percent.blitz: 50
       #   omero.jvmcfg.percent.indexer: 20
@@ -55,8 +57,16 @@
           script_ui|ome_tiff|figure_script))|\
           webgateway/(?!(archived_files|download_as))\
           |iviewer/|mapr/|figure/)"
+        omero.web.nginx_server_extra_config:
+          # Proxy websockets through Nginx alongside OMERO.web
+          - location ~ ^/omero-ws(/.*)?$ {
+          - proxy_pass https://localhost:4066;
+          - proxy_http_version 1.1;
+          - proxy_set_header Upgrade $http_upgrade;
+          - proxy_set_header Connection "Upgrade";
+          - proxy_read_timeout 86400;
+          - "}"
         # Uncomment to configure SSL certificates
-        # omero.web.nginx_server_extra_config:
         #   - "listen 443 ssl;"
         #   - "ssl_certificate {{ ssl_certificate_public_path }};"
         #   - "ssl_certificate_key {{ ssl_certificate_key_path }};"
