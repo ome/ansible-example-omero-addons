@@ -1,0 +1,13 @@
+[Unit]
+Description=OMERO.ms-zarr
+After=network.service
+
+[Service]
+User=omero-server
+Type=simple
+Restart=no
+#RestartSec=10
+ExecStart=/opt/omero/omero-ms-zarr/omero-ms-zarr/bin/omero-ms-zarr /opt/omero/omero-ms-zarr/omero-ms-zarr.properties
+
+[Install]
+WantedBy=multi-user.target
