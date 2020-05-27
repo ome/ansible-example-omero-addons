@@ -66,6 +66,10 @@
           - proxy_set_header Connection "Upgrade";
           - proxy_read_timeout 86400;
           - "}"
+          # Proxy omero-ms-zarr
+          - location ~^/image/ {
+          - proxy_pass http://localhost:8080;
+          - "}"
         # Uncomment to configure SSL certificates
         #   - "listen 443 ssl;"
         #   - "ssl_certificate {{ ssl_certificate_public_path }};"
@@ -162,3 +166,41 @@
     postgresql_version: "11"
     omero_server_rootpassword: ChangeMe
     omero_web_public_password: public
+
+
+- hosts: omero-addons
+
+  roles:
+
+    - role: ome.deploy_archive
+      become: true
+      deploy_archive_dest_dir: /opt/omero/omero-ms-zarr
+      deploy_archive_src_url: >
+        https://users.openmicroscopy.org.uk/~spli/testing/omero-ms-zarr-shadow-0.1.1-SNAPSHOT-v0.1.2.zip
+      deploy_archive_sha256: >
+        c0c4121b50e765055ce3f1da51647ee40a21a68b33e923ce9048aa21c42052af
+      deploy_archive_symlink: /opt/omero/omero-ms-zarr/omero-ms-zarr
+      deploy_archive_internal_root: omero-ms-zarr-shadow-0.1.1-SNAPSHOT
+      # TODO: restart omero-ms-zarr if it's already installed
+      # deploy_archive_notifies:
+
+  tasks:
+
+    - name: Create omero-ms-zarr configuration
+      become: true
+      template:
+        src: omero-ms-zarr.properties.j2
+        dest: /opt/omero/omero-ms-zarr/omero-ms-zarr.properties
+
+    - name: Create omero-ms-zarr systemd service
+      become: true
+      template:
+        src: omero-ms-zarr.service.j2
+        dest: /etc/systemd/system/omero-ms-zarr.service
+
+    - name: Enable and start omero-ms-zarr systemd service
+      become: true
+      service:
+        enabled: true
+        name: omero-ms-zarr.service
+        state: started
